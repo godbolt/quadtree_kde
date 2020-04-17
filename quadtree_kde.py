@@ -1,6 +1,6 @@
 
 import numpy as n
-from kde.cudakde import gaussian_kde
+from kde.cudakde import bootstrap_kde, gaussian_kde
 
 from .qfakde.code.common import Point
 from .qfakde.code.quadtree import DynamicQuadTree
@@ -33,7 +33,7 @@ class quadtree_kde(gaussian_kde):
     def __init__(self, data,
                  quadtree_granularity = 20,
                  quadtree_max_depth = 10,
-                 bandwidth_scale_factor_power = 0.5):
+                 bandwidth_factor_power = 0.5):
 
         gaussian_kde.__init__(self, data)
 
@@ -58,7 +58,7 @@ class quadtree_kde(gaussian_kde):
         
         self.lambdas = pow(n.array([bandwidth_scale_factor[k] for k
                                     in sorted(bandwidth_scale_factor)]),
-                           bandwidth_scale_factor_power)
+                           bandwidth_factor_power)
 
     def get_lambdas_from_quadtree(self, node, lambdas):
         d = node.boundary.dimension
@@ -73,3 +73,22 @@ class quadtree_kde(gaussian_kde):
 
     def __call__(self, grid_points):
         return gaussian_kde.__call__(self, grid_points)
+
+
+class quadtree_bootstrap_kde(bootstrap_kde):
+    def __init__(self, data, num_bootstraps, **kwargs):
+        assert int(num_bootstraps) == float(num_bootstraps)
+        num_bootstraps = int(num_bootstraps)
+
+        self.kernels = []
+        self.bootstrap_indices = []
+
+        self.data = n.atleast_2d(data)
+        self.d, self.n = self.data.shape
+        self.weighted = False
+
+        for _ in range(num_bootstraps):
+            indices = n.array(self.get_bootstrap_indices())
+            self.bootstrap_indices.append(indices)
+            kernel = quadtree_kde(data[..., indices], **kwargs)
+            self.kernels.append(kernel)
