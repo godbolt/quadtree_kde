@@ -31,11 +31,12 @@ SOFTWARE.
 
 class quadtree_kde(gaussian_kde):
     def __init__(self, data,
-                 quadtree_granularity = 20,
-                 quadtree_max_depth = 10,
-                 bandwidth_factor_power = 0.5):
+                 quadtree_granularity=20,
+                 quadtree_max_depth=10,
+                 bandwidth_factor_power=0.5,
+                 use_cuda=False):
 
-        gaussian_kde.__init__(self, data)
+        gaussian_kde.__init__(self, data, use_cuda=use_cuda)
 
         x_max = n.max(data[0, :])
         x_min = n.min(data[0, :])
