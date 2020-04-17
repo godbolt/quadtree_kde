@@ -2,6 +2,9 @@
 import numpy as n
 from kde.cudakde import gaussian_kde
 
+from .qfakde.code.common import Point
+from .qfakde.code.quadtree import DynamicQuadTree
+
 __license__ = """
 MIT License
 
@@ -27,8 +30,11 @@ SOFTWARE.
 """
 
 class quadtree_kde(gaussian_kde):
-    def __init__(self, data, quadtree_granularity = 20,
-                 quadtree_max_depth = 10, bandwidth_scale_factor_power = 0.5):
+    def __init__(self, data,
+                 quadtree_granularity = 20,
+                 quadtree_max_depth = 10,
+                 bandwidth_scale_factor_power = 0.5):
+
         gaussian_kde.__init__(self, data)
 
         x_max = n.max(data[0, :])
@@ -46,18 +52,24 @@ class quadtree_kde(gaussian_kde):
             qt.insert(Point(data[0,i], data[1,i], i))
 
         bandwidth_scale_factor = {}
-        bandwidth_scale_factor = quadtree_kde.get_lambdas_from_quadtree(qt.root, bandwidth_scale_factor)
+        bandwidth_scale_factor = self.get_lambdas_from_quadtree(
+            qt.root,
+            bandwidth_scale_factor)
         
         self.lambdas = pow(n.array([bandwidth_scale_factor[k] for k
                                     in sorted(bandwidth_scale_factor)]),
                            bandwidth_scale_factor_power)
 
-    @staticmethod
-    def get_lambdas_from_quadtree(node, lambdas):
+    def get_lambdas_from_quadtree(self, node, lambdas):
         d = node.boundary.dimension
         pts = list(node._points)
         for pt in pts:
             lambdas[pt.key] = d
         for region in node._nodes:
-            lambdas = gaussian_kde.get_lambdas_from_quadtree(node._nodes[region], lambdas)
+            lambdas = self.get_lambdas_from_quadtree(
+                node._nodes[region],
+                lambdas)
         return lambdas
+
+    def __call__(self, grid_points):
+        return gaussian_kde.__call__(self, grid_points)

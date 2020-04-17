@@ -1,0 +1,3 @@
+[submodule "Spatial-Statistics"]
+	path = qfakde
+	url = git@github.com:godbolt/Spatial-Statistics.git
