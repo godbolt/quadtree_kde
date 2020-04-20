@@ -8,7 +8,7 @@ By using the quadtree to assign a bandwidth to each of the data points an approx
 ## Use
 1. Install pykde in your system
 ```bash
-pip install pykde
+pip install git+https://github.com/icecubeopensource/kde.git#egg=kde[cuda]
 ```
 and set up the cuda dependencies as necessary.
 2. Clone this repository and the submodule
